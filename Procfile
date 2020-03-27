@@ -1,1 +1,1 @@
-worker: python3 InHouseBot/InHouseBot.py
+worker: python3 MeowthBot/MeowthBot.py
