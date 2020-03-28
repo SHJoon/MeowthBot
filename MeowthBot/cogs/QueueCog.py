@@ -101,7 +101,7 @@ class Queue(commands.Cog):
             message += f"**#{place+1}** : {name}\n"
         if len(self.queue) == 0:
             message += f"Queue is empty."
-        embed = discord.Embed(description=message, colour=discord.Colour.green())
+        embed = discord.Embed(description=message, colour=discord.Colour.blue())
         embed.set_footer(text="Join the queue with !add / Leave the queue with !leave")
         self.queuemsg = await ctx.send(embed=embed)
         await self.queuemsg.add_reaction("<:join:668410201099206680>")

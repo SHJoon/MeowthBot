@@ -18,7 +18,8 @@ bot = commands.Bot(command_prefix=prefixes,
 async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
-
+    channel = bot.get_channel(656313087707840523)
+    await channel.send('Bot has been reset.')
 
 @bot.event
 async def on_message(message):
