@@ -200,7 +200,4 @@ class Meowth(commands.Cog):
 
     @commands.command()
     async def vibe(self, ctx):
-        embed = discord.Embed()
-        embed.set_image(url="https://gfycat.com/velvetyanxiousblacklemur")
-        embed.colour = discord.Colour.magenta()
-        await ctx.send(embed=embed)
+        await ctx.send("https://gfycat.com/velvetyanxiousblacklemur")
