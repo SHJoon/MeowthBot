@@ -197,3 +197,10 @@ class Meowth(commands.Cog):
             message = "No voice lobby for captains draft"
 
         await ctx.send(message)
+
+    @commands.command()
+    async def vibe(self, ctx):
+        embed = discord.Embed()
+        embed.set_image(url="https://gfycat.com/velvetyanxiousblacklemur")
+        embed.colour = discord.Colour.magenta()
+        await ctx.send(embed=embed)
