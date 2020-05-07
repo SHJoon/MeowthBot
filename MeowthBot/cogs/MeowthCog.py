@@ -147,7 +147,7 @@ class Meowth(commands.Cog):
     async def captains(self, ctx):
         """ Randomizes captains list from General Voice channel"""
         members = discord.utils.get(
-            ctx.guild.channels, name="eating ape shit", type=discord.ChannelType.voice
+            ctx.guild.channels, name="The Commons", type=discord.ChannelType.voice
         ).members
         random.shuffle(members)
         message = ""
@@ -162,7 +162,7 @@ class Meowth(commands.Cog):
     async def lulcaptains(self, ctx):
         """ Like !captains, but like when Danny drinks"""
         members = discord.utils.get(
-            ctx.guild.channels, name="eating ape shit", type=discord.ChannelType.voice
+            ctx.guild.channels, name="The Commons", type=discord.ChannelType.voice
         ).members
         random.shuffle(members)
         message = ""

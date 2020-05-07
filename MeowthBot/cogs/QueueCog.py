@@ -2,7 +2,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-approved_roles = ["emperor god king"]
+approved_roles = ["emperor god king", "Oligarchs"]
 
 def is_approved():
     def predicate(ctx):
