@@ -18,7 +18,7 @@ class Queue(commands.Cog):
         self.qtoggle = True
         self.qtime = "None set yet"
         self.queuemsg = None
-        self.readynum = 10
+        self.readynum = 0
 
     @commands.command(aliases=["join"])
     async def add(self, ctx):
@@ -48,8 +48,13 @@ class Queue(commands.Cog):
             await ctx.send("The queue is closed.")
     
     @commands.command(name="ready", aliases=["go"])
-    async def _ready(self, ctx):
+    async def _ready(self, ctx, num=""):
         """ If everyone is ready to game, this command will ping them! """
+        if num == "":
+            self.readynum = len(self.queue)
+        else:
+            self.readynum = int(num)
+
         if len(self.queue) >= self.readynum:
             server = ctx.guild
             message = ""
@@ -59,7 +64,7 @@ class Queue(commands.Cog):
             await ctx.send(message)
             for _ in range(self.readynum):
                 self.queue.pop(0)
-            await ctx.send("10 MEN TIME LESGOO")
+            await ctx.send("GAMING TIME LESGOO")
         else:
             await ctx.send("Not enough people in the lobby...")
         await ctx.invoke(self._queue)
