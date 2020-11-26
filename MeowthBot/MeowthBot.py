@@ -7,11 +7,14 @@ from discord.ext import commands, tasks
 from cogs.MeowthCog import Meowth
 from cogs.QueueCog import Queue
 
+intents = discord.Intents.default()
+intents.members = True
 # Change this to whatever prefix you'd like
 prefixes = ["!", "."]
 # Instantiate our bot
 bot = commands.Bot(command_prefix=prefixes,
                     case_insensitive=True,
+                    intents=intents
                     )
 
 @bot.event
