@@ -81,7 +81,7 @@ class QueueCog(commands.Cog):
             self.sheet.clear()
             return
         
-        col_alpha = self.alphabet[len(cached) - 1]
+        col_alpha = self.alphabet[len(cached) - 1] if len(cached) <= 26 else self.alphabet[25]
         
         sheet_a1_range = f'A1:{col_alpha}1'
         cell_row = self.sheet.range(sheet_a1_range)
@@ -200,13 +200,28 @@ class QueueCog(commands.Cog):
     @retry_authorize(gspread.exceptions.APIError)
     async def _next(self, ctx, num=1):
         """ Call the next member in the queue """
+        # Early exit if no one is in the queue
+        if len(self.queue) == 0:
+            await ctx.send("No one left in the queue :(")
+            return
+
+        if num > len(self.queue):
+            num = len(self.queue)
+            
+        msg = ""
+        for _ in range(num):
+            member = discord.utils.get(ctx.guild.members, id=self.queue[0])
+            msg += f"You are up **{member.mention}**! Have fun!\n"
+        
+        await self.update_sheet(self.queue[num:])
+
         for _ in range(num):
             if len(self.queue) == 0:
                 await ctx.send("No one left in the queue :(")
                 return
-            member = discord.utils.get(ctx.guild.members, id=self.queue[0])
-            await ctx.send(f"You are up **{member.mention}**! Have fun!")
             self.queue.pop(0)
+        await ctx.send(msg)
+        await ctx.invoke(self._queue)
 
     @commands.command()
     @commands.has_permissions(manage_roles=True, ban_members=True)
