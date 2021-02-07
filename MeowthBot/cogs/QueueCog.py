@@ -2,6 +2,58 @@ import asyncio
 import discord
 from discord.ext import commands
 
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from tempfile import NamedTemporaryFile
+from functools import wraps
+
+creds = None
+gclient = None
+google_oauth_json = None
+
+if "GOOGLE_OAUTH_JSON" in os.environ:
+    google_oauth_json = os.environ["GOOGLE_OAUTH_JSON"]
+elif os.path.isfile("InHouseTest.json"):
+    print("Grabbed local json file for test spreadsheet.")
+    with open("InHouseTest.json", "r") as f:
+        google_oauth_json = f.read()
+
+f = NamedTemporaryFile(mode="w+", delete=False)
+f.write(google_oauth_json)
+f.flush()
+
+scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+        f.name, scope
+    )
+
+gclient = gspread.authorize(creds)
+
+def retry_authorize(exceptions, tries=4):
+    def deco_retry(f):
+        @wraps(f)
+        async def f_retry(*args, **kwargs):
+            mtries = tries
+            while mtries > 1:
+                try:
+                    return await f(*args, **kwargs)
+                except exceptions as e:
+                    msg = f"{e}, Reauthorizing and retrying ..."
+                    gclient.login()
+                    print(msg)
+                    mtries -= 1
+            return await f(*args, **kwargs)
+
+        return f_retry  # true decorator
+
+    return deco_retry
+
 approved_roles = ["emperor god king", "Oligarchs"]
 
 def is_approved():
