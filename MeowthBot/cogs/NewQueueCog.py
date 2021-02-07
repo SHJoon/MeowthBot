@@ -200,4 +200,4 @@ class QueueCog(commands.Cog):
     async def leggo(self, ctx, *, _time = "None set yet"):
         """ Tries to get a game ready """
         self.qtime = _time
-        await ctx.send("Time for some 10 mens! Join the lobby @here")
+        await ctx.send("Gaming time! Join the lobby @here")
