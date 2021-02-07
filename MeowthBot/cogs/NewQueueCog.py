@@ -65,6 +65,7 @@ class QueueCog(commands.Cog):
         self.creds = creds
         self.gclient = gclient
         self.lock = asyncio.Lock()
+        self.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
         if "GOOGLE_OAUTH_JSON" in os.environ:
             self.sheet = gclient.open("InHouseData").worksheet("Meowth_Queue")
@@ -73,6 +74,16 @@ class QueueCog(commands.Cog):
         
         self.queue = [int(member_id) for member_id in self.sheet.get_all_values()[0]]
         print(self.queue)
+    
+    async def update_sheet(self, ctx):
+        if len(self.queue) == 0:
+            self.sheet.clear()
+            return
+        
+        col_alpha = self.alphabet[len(self.queue) - 1]
+        
+        sheet_a1_range = f'A1:{col_alpha}1'
+        cell_list = self.sheet.range(sheet_a1_range)
 
     @commands.command(name="queue", aliases=["lobby", "q"])
     async def _queue(self, ctx):
@@ -85,6 +96,7 @@ class QueueCog(commands.Cog):
                 pass
         
         # Build our queue message
+        await self.update_sheet(ctx)
         msg = f"**Gaming time**: {self.qtime}\n"
         if len(self.queue) == 0:
             msg += f"Queue is empty."
@@ -110,6 +122,7 @@ class QueueCog(commands.Cog):
             pass
 
     @commands.command(aliases=["join", "fadd", "forceadd", "fjoin", "forcejoin"])
+    @retry_authorize(gspread.exceptions.APIError)
     async def add(self, ctx, member: discord.Member=None):
         """ Add yourself or another person to the queue! """
         # Check if user is adding themselves or another person
@@ -131,6 +144,7 @@ class QueueCog(commands.Cog):
     
     @commands.command(aliases=["leave", "drop", "fdrop", "fremove", "fleave",
         "forcedrop", "forceremove", "forceleave"])
+    @retry_authorize(gspread.exceptions.APIError)
     async def remove(self, ctx, member: discord.Member=None):
         """ Remove yourself from the queue """
         # Check if user is removing themselves or another person
@@ -151,6 +165,7 @@ class QueueCog(commands.Cog):
         await ctx.invoke(self._queue)
 
     @commands.command(name="ready", aliases=["go"])
+    @retry_authorize(gspread.exceptions.APIError)
     async def _ready(self, ctx, num:int=-1):
         """ If everyone is ready to game, this command will ping them! """
         if num == -1:
@@ -177,6 +192,7 @@ class QueueCog(commands.Cog):
         await ctx.invoke(self._queue)
 
     @commands.command(name="next")
+    @retry_authorize(gspread.exceptions.APIError)
     async def _next(self, ctx, num=1):
         """ Call the next member in the queue """
         for _ in range(num):
@@ -189,6 +205,7 @@ class QueueCog(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(manage_roles=True, ban_members=True)
+    @retry_authorize(gspread.exceptions.APIError)
     async def clear(self, ctx):
         """ Clears the queue (ADMIN ONLY) """
         self.queue.clear()

@@ -76,8 +76,8 @@ elif os.path.isfile("key"):
 
 # Add in our cogs
 if ("GOOGLE_OAUTH_JSON" in os.environ) or (os.path.isfile("InHouseTest.json")):
-    from cogs.QueueCog import Queue
-    bot.add_cog(Queue(bot))
+    # from cogs.QueueCog import Queue
+    # bot.add_cog(Queue(bot))
     from cogs.NewQueueCog import QueueCog
     bot.add_cog(QueueCog(bot))
 else:
