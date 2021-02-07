@@ -6,6 +6,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from tempfile import NamedTemporaryFile
 from functools import wraps
+import os
 
 creds = None
 gclient = None
@@ -50,7 +51,7 @@ def retry_authorize(exceptions, tries=4):
                     mtries -= 1
             return await f(*args, **kwargs)
 
-        return f_retry  # true decorator
+        return f_retry
 
     return deco_retry
 
@@ -71,6 +72,15 @@ class Queue(commands.Cog):
         self.qtime = "None set yet"
         self.queuemsg = None
         self.readynum = 0
+
+        self.creds = creds
+        self.gclient = gclient
+        self.lock = asyncio.Lock()
+
+        if "GOOGLE_OAUTH_JSON" in os.environ:
+            self.sheet = gclient.open("InHouseData").worksheet("Meowth_Queue")
+        elif os.path.isfile("InHouseTest.json"):
+            self.sheet = gclient.open("InHouseDataTest").worksheet("Test_Queue")
 
     @commands.command(aliases=["join"])
     async def add(self, ctx):
