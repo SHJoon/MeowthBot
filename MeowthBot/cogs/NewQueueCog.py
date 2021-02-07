@@ -71,22 +71,25 @@ class QueueCog(commands.Cog):
             self.sheet = gclient.open("InHouseData").worksheet("Meowth_Queue")
         elif os.path.isfile("InHouseTest.json"):
             self.sheet = gclient.open("InHouseDataTest").worksheet("Test_Queue")
-        
-        self.queue = [int(member_id) for member_id in self.sheet.get_all_values()[0]]
-        print(self.queue)
+        cache = self.sheet.get_all_values()
+        if cache:
+            self.queue = [int(member_id) for member_id in cache[0]]
+        else:
+            self.queue = []
     
     # Helper function to update the spreadsheet when cache is updated
     async def update_sheet(self, cached):
         if len(cached) == 0:
             self.sheet.clear()
             return
+        self.sheet.clear()
         
         col_alpha = self.alphabet[len(cached) - 1] if len(cached) <= 26 else self.alphabet[25]
         
         sheet_a1_range = f'A1:{col_alpha}1'
         cell_row = self.sheet.range(sheet_a1_range)
         for idx, val in enumerate(cached):
-            cell_row[idx].value = val
+            cell_row[idx].value = str(val)
         self.sheet.update_cells(cell_row)
 
     @commands.command(name="queue", aliases=["lobby", "q"])
@@ -100,6 +103,7 @@ class QueueCog(commands.Cog):
                 pass
         
         # Build our queue message
+        print(self.queue)
         msg = f"**Gaming time**: {self.qtime}\n"
         if len(self.queue) == 0:
             msg += f"Queue is empty."
@@ -179,10 +183,10 @@ class QueueCog(commands.Cog):
         else:
             msg = ""
             for i in range(self.readynum):
-                member = discord.utils.get(ctx.guild.members, id=self.queue[0])
+                member = discord.utils.get(ctx.guild.members, id=self.queue[i])
                 msg += member.mention
             # Attempt to update sheet first
-            await self.update_sheet(self.queue[self.readynum - 1:])
+            await self.update_sheet(self.queue[self.readynum:])
             # Change the cache only if the API call is successful
             for i in range(self.readynum):
                 self.queue.pop(0)
@@ -207,10 +211,10 @@ class QueueCog(commands.Cog):
 
         if num > len(self.queue):
             num = len(self.queue)
-            
+
         msg = ""
-        for _ in range(num):
-            member = discord.utils.get(ctx.guild.members, id=self.queue[0])
+        for i in range(num):
+            member = discord.utils.get(ctx.guild.members, id=self.queue[i])
             msg += f"You are up **{member.mention}**! Have fun!\n"
         
         await self.update_sheet(self.queue[num:])
@@ -218,7 +222,7 @@ class QueueCog(commands.Cog):
         for _ in range(num):
             if len(self.queue) == 0:
                 await ctx.send("No one left in the queue :(")
-                return
+                break
             self.queue.pop(0)
         await ctx.send(msg)
         await ctx.invoke(self._queue)
