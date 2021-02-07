@@ -76,15 +76,18 @@ class QueueCog(commands.Cog):
         print(self.queue)
     
     # Helper function to update the spreadsheet when cache is updated
-    async def update_sheet(self):
-        if len(self.queue) == 0:
+    async def update_sheet(self, cached):
+        if len(cached) == 0:
             self.sheet.clear()
             return
         
-        col_alpha = self.alphabet[len(self.queue) - 1]
+        col_alpha = self.alphabet[len(cached) - 1]
         
         sheet_a1_range = f'A1:{col_alpha}1'
-        cell_list = self.sheet.range(sheet_a1_range)
+        cell_row = self.sheet.range(sheet_a1_range)
+        for idx, val in enumerate(cached):
+            cell_row[idx].value = val
+        self.sheet.update_cells(cell_row)
 
     @commands.command(name="queue", aliases=["lobby", "q"])
     async def _queue(self, ctx):
@@ -135,7 +138,7 @@ class QueueCog(commands.Cog):
         if member_id not in self.queue:
             self.queue.append(member_id)
 
-        await self.update_sheet()
+        await self.update_sheet(self.queue)
 
         # Repost the queue
         await ctx.invoke(self._queue)
@@ -155,7 +158,7 @@ class QueueCog(commands.Cog):
         if member_id in self.queue:
             self.queue.remove(member_id)
         
-        await self.update_sheet()
+        await self.update_sheet(self.queue)
         
         # Repost the queue
         await ctx.invoke(self._queue)
@@ -178,6 +181,10 @@ class QueueCog(commands.Cog):
             for i in range(self.readynum):
                 member = discord.utils.get(ctx.guild.members, id=self.queue[0])
                 msg += member.mention
+            # Attempt to update sheet first
+            await self.update_sheet(self.queue[self.readynum - 1:])
+            # Change the cache only if the API call is successful
+            for i in range(self.readynum):
                 self.queue.pop(0)
             await ctx.send(msg)
         
@@ -208,7 +215,7 @@ class QueueCog(commands.Cog):
         """ Clears the queue (ADMIN ONLY) """
         self.queue.clear()
         self.qtime = "None set yet"
-        await self.update_sheet()
+        await self.update_sheet(self.queue)
         await ctx.send("Queue has been cleared")
         await ctx.invoke(self._queue)
 
