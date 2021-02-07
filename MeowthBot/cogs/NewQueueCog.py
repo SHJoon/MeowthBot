@@ -71,7 +71,7 @@ class QueueCog(commands.Cog):
         elif os.path.isfile("InHouseTest.json"):
             self.sheet = gclient.open("InHouseDataTest").worksheet("Test_Queue")
         
-        self.queue = self.sheet.get_all_values()[0]
+        self.queue = [int(member_id) for member_id in self.sheet.get_all_values()[0]]
         print(self.queue)
 
     @commands.command(name="queue", aliases=["lobby", "q"])
@@ -105,25 +105,36 @@ class QueueCog(commands.Cog):
         except Exception:
             pass
 
-    @commands.command(aliases=["join"])
-    async def add(self, ctx):
-        """ Add yourself to the queue! """
+    @commands.command(aliases=["join", "fadd", "forceadd", "fjoin", "forcejoin"])
+    async def add(self, ctx, member: discord.Member=None):
+        """ Add yourself or another person to the queue! """
+        if member is not None:
+            member_id = member.id
+        else:
+            member_id = ctx.message.author.id
         
-    
-    @commands.command(aliases=["forcejoin","fjoin", "fadd"])
-    async def forceadd(self, ctx, member: discord.Member):
-        """ Force another user to join the queue with an @ """
+        if member_id not in self.queue:
+            self.queue.append(member_id)
+        elif member is not None:
+            await ctx.send(f"{member.nick} is already in queue!")
+        else:
+            await ctx.send(f"You are already in queue!")
         
+        await ctx.invoke(self._queue)
     
+    @commands.command(aliases=["leave", "drop", "fdrop", "fremove", "fleave",
+        "forcedrop", "forceremove", "forceleave"])
+    async def remove(self, ctx, member: discord.Member=None):
+        """ Remove yourself from the queue """
+        if member is not None:
+            member_id = member.id
+        else:
+            member_id = ctx.message.author.id
+
     @commands.command(name="ready", aliases=["go"])
     async def _ready(self, ctx, num=""):
         """ If everyone is ready to game, this command will ping them! """
-        
-    
-    @commands.command(aliases=["leave", "drop"])
-    async def remove(self, ctx):
-        """ Remove yourself from the queue """
-        
+
     
     @commands.command(aliases=["forcedrop","forceleave","fremove","fdrop","fleave"])
     async def forceremove(self, ctx, member: discord.Member):
