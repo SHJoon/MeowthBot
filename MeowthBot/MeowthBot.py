@@ -78,6 +78,8 @@ elif os.path.isfile("key"):
 if ("GOOGLE_OAUTH_JSON" in os.environ) or (os.path.isfile("InHouseTest.json")):
     from cogs.QueueCog import Queue
     bot.add_cog(Queue(bot))
+    from cogs.NewQueueCog import QueueCog
+    bot.add_cog(QueueCog(bot))
 else:
     print("No relevant file found. QueueCog is disabled.")
 bot.add_cog(Meowth(bot))
