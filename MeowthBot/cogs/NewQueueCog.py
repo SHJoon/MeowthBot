@@ -187,14 +187,14 @@ class QueueCog(commands.Cog):
             await ctx.send(f"You are up **{member.mention}**! Have fun!")
             self.queue.pop(0)
 
-    @is_approved()
     @commands.command()
     @commands.has_permissions(manage_roles=True, ban_members=True)
     async def clear(self, ctx):
         """ Clears the queue (ADMIN ONLY) """
-        self.queue = []
+        self.queue.clear()
         self.qtime = "None set yet"
         await ctx.send("Queue has been cleared")
+        await ctx.invoke(self._queue)
 
     @commands.command()
     async def leggo(self, ctx, *, _time = "None set yet"):
