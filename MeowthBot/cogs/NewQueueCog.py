@@ -191,6 +191,7 @@ class QueueCog(commands.Cog):
             for i in range(self.readynum):
                 self.queue.pop(0)
             await ctx.send(msg)
+            await ctx.send("GAMING TIME LET'S GOOOOOO")
         
         await ctx.invoke(self._queue)
     
