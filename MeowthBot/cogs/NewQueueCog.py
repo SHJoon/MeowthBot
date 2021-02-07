@@ -75,7 +75,8 @@ class QueueCog(commands.Cog):
         self.queue = [int(member_id) for member_id in self.sheet.get_all_values()[0]]
         print(self.queue)
     
-    async def update_sheet(self, ctx):
+    # Helper function to update the spreadsheet when cache is updated
+    async def update_sheet(self):
         if len(self.queue) == 0:
             self.sheet.clear()
             return
@@ -96,7 +97,6 @@ class QueueCog(commands.Cog):
                 pass
         
         # Build our queue message
-        await self.update_sheet(ctx)
         msg = f"**Gaming time**: {self.qtime}\n"
         if len(self.queue) == 0:
             msg += f"Queue is empty."
@@ -134,11 +134,9 @@ class QueueCog(commands.Cog):
         # Check if member is already in queue or not
         if member_id not in self.queue:
             self.queue.append(member_id)
-        elif member is not None:
-            await ctx.send(f"{member.nick} is already in queue!")
-        else:
-            await ctx.send(f"You are already in queue!")
-        
+
+        await self.update_sheet()
+
         # Repost the queue
         await ctx.invoke(self._queue)
     
@@ -156,10 +154,8 @@ class QueueCog(commands.Cog):
         # Check if member is already in queue or not
         if member_id in self.queue:
             self.queue.remove(member_id)
-        elif member is not None:
-            await ctx.send(f"{member.name} was not in the queue!")
-        else:
-            await ctx.send(f"You were not in the queue!")
+        
+        await self.update_sheet()
         
         # Repost the queue
         await ctx.invoke(self._queue)
@@ -168,11 +164,13 @@ class QueueCog(commands.Cog):
     @retry_authorize(gspread.exceptions.APIError)
     async def _ready(self, ctx, num:int=-1):
         """ If everyone is ready to game, this command will ping them! """
+        # If ready num isn't specified, ping the whole queue
         if num == -1:
             self.readynum = len(self.queue)
         else:
             self.readynum = num
         
+        # Check if there are enough people in the queue
         if len(self.queue) < self.readynum:
             await ctx.send("Not enough people in the lobby...")
         else:
@@ -210,6 +208,7 @@ class QueueCog(commands.Cog):
         """ Clears the queue (ADMIN ONLY) """
         self.queue.clear()
         self.qtime = "None set yet"
+        await self.update_sheet()
         await ctx.send("Queue has been cleared")
         await ctx.invoke(self._queue)
 
