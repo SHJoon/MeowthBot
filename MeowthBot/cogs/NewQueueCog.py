@@ -74,6 +74,37 @@ class QueueCog(commands.Cog):
         self.queue = self.sheet.get_all_values()[0]
         print(self.queue)
 
+    @commands.command(name="queue", aliases=["lobby", "q"])
+    async def _queue(self, ctx):
+        """ View the queue! """
+        server = ctx.guild
+
+        if self.queuemsg is not None:
+            try:
+                await self.queuemsg.delete()
+            except Exception:
+                pass
+        
+        msg = f"**Gaming time**: {self.qtime}\n"
+        if len(self.queue) == 0:
+            msg += f"Queue is empty."
+        else:
+            for place, member_id in enumerate(self.queue):
+                member = discord.utils.get(server.members, id=int(member_id))
+                name = member.nick if member.nick else member.name
+                msg += f"**#{place+1}** : {name}\n"
+        
+        embed = discord.Embed(description=msg, colour=discord.Colour.blue())
+        embed.set_footer(text="Join the queue with !add / Leave the queue with !leave")
+        self.queuemsg = await ctx.send(embed=embed)
+
+        await self.queuemsg.add_reaction("<:join:668410201099206680>")
+        await self.queuemsg.add_reaction("<:drop:668410288667885568>")
+        try:
+            await ctx.message.delete()
+        except Exception:
+            pass
+
     @commands.command(aliases=["join"])
     async def add(self, ctx):
         """ Add yourself to the queue! """
@@ -97,11 +128,6 @@ class QueueCog(commands.Cog):
     @commands.command(aliases=["forcedrop","forceleave","fremove","fdrop","fleave"])
     async def forceremove(self, ctx, member: discord.Member):
         """ Force another user to drop from the queue with an @ """
-        
-    
-    @commands.command(name="queue", aliases=["lobby", "q"])
-    async def _queue(self, ctx):
-        """ See who's up next! """
         
     
     @commands.command(aliases=["qtime","settime"])
@@ -129,4 +155,3 @@ class QueueCog(commands.Cog):
         """ Tries to get a game ready """
         self.qtime = _time
         await ctx.send("Time for some 10 mens! Join the lobby @here")
-        
