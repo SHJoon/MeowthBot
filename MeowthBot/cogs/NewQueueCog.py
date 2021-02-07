@@ -184,7 +184,8 @@ class QueueCog(commands.Cog):
                 await ctx.send("No one left in the queue :(")
                 return
             member = discord.utils.get(ctx.guild.members, id=self.queue[0])
-            
+            await ctx.send(f"You are up **{member.mention}**! Have fun!")
+            self.queue.pop(0)
 
     @is_approved()
     @commands.command()
