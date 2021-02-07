@@ -81,6 +81,9 @@ class Queue(commands.Cog):
             self.sheet = gclient.open("InHouseData").worksheet("Meowth_Queue")
         elif os.path.isfile("InHouseTest.json"):
             self.sheet = gclient.open("InHouseDataTest").worksheet("Test_Queue")
+        
+        self.cache = self.sheet.get_all_values()
+        print(self.cache)
 
     @commands.command(aliases=["join"])
     async def add(self, ctx):

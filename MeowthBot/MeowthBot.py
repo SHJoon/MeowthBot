@@ -5,7 +5,7 @@ import random
 from discord.ext import commands, tasks
 
 from cogs.MeowthCog import Meowth
-from cogs.QueueCog import Queue
+# from cogs.QueueCog import Queue
 
 intents = discord.Intents.default()
 intents.members = True
@@ -63,6 +63,7 @@ async def on_raw_reaction_add(reaction):
         await ctx.invoke(bot.get_command("forceremove"),user)
         return
 
+
 token = None
 
 if "BOT_KEY" in os.environ:
@@ -74,8 +75,12 @@ elif os.path.isfile("key"):
         token = f.read().strip().strip("\n")
 
 # Add in our cogs
+if ("GOOGLE_OAUTH_JSON" in os.environ) or (os.path.isfile("InHouseTest.json")):
+    from cogs.QueueCog import Queue
+    bot.add_cog(Queue(bot))
+else:
+    print("No relevant file found. QueueCog is disabled.")
 bot.add_cog(Meowth(bot))
-bot.add_cog(Queue(bot))
 
 if token is not None:
     bot.run(token)
