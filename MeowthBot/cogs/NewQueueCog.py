@@ -77,29 +77,33 @@ class QueueCog(commands.Cog):
     @commands.command(name="queue", aliases=["lobby", "q"])
     async def _queue(self, ctx):
         """ View the queue! """
-        server = ctx.guild
-
+        # Try to delete previous queue message
         if self.queuemsg is not None:
             try:
                 await self.queuemsg.delete()
             except Exception:
                 pass
         
+        # Build our queue message
         msg = f"**Gaming time**: {self.qtime}\n"
         if len(self.queue) == 0:
             msg += f"Queue is empty."
         else:
             for place, member_id in enumerate(self.queue):
-                member = discord.utils.get(server.members, id=int(member_id))
+                member = discord.utils.get(ctx.guild.members, id=int(member_id))
                 name = member.nick if member.nick else member.name
                 msg += f"**#{place+1}** : {name}\n"
         
+        # Build our embed
         embed = discord.Embed(description=msg, colour=discord.Colour.blue())
         embed.set_footer(text="Join the queue with !add / Leave the queue with !leave")
         self.queuemsg = await ctx.send(embed=embed)
 
+        # Add reaction for join/drop
         await self.queuemsg.add_reaction("<:join:668410201099206680>")
         await self.queuemsg.add_reaction("<:drop:668410288667885568>")
+        
+        # Attempt to delete user message if possible
         try:
             await ctx.message.delete()
         except Exception:
@@ -108,11 +112,13 @@ class QueueCog(commands.Cog):
     @commands.command(aliases=["join", "fadd", "forceadd", "fjoin", "forcejoin"])
     async def add(self, ctx, member: discord.Member=None):
         """ Add yourself or another person to the queue! """
+        # Check if user is adding themselves or another person
         if member is not None:
             member_id = member.id
         else:
             member_id = ctx.message.author.id
         
+        # Check if member is already in queue or not
         if member_id not in self.queue:
             self.queue.append(member_id)
         elif member is not None:
@@ -120,26 +126,49 @@ class QueueCog(commands.Cog):
         else:
             await ctx.send(f"You are already in queue!")
         
+        # Repost the queue
         await ctx.invoke(self._queue)
     
     @commands.command(aliases=["leave", "drop", "fdrop", "fremove", "fleave",
         "forcedrop", "forceremove", "forceleave"])
     async def remove(self, ctx, member: discord.Member=None):
         """ Remove yourself from the queue """
+        # Check if user is removing themselves or another person
         if member is not None:
             member_id = member.id
         else:
             member_id = ctx.message.author.id
+        
+        # Check if member is already in queue or not
+        if member_id in self.queue:
+            self.queue.remove(member_id)
+        elif member is not None:
+            await ctx.send(f"{member.name} was not in the queue!")
+        else:
+            await ctx.send(f"You were not in the queue!")
+        
+        # Repost the queue
+        await ctx.invoke(self._queue)
 
     @commands.command(name="ready", aliases=["go"])
-    async def _ready(self, ctx, num=""):
+    async def _ready(self, ctx, num:int=-1):
         """ If everyone is ready to game, this command will ping them! """
-
-    
-    @commands.command(aliases=["forcedrop","forceleave","fremove","fdrop","fleave"])
-    async def forceremove(self, ctx, member: discord.Member):
-        """ Force another user to drop from the queue with an @ """
+        if num == -1:
+            self.readynum = len(self.queue)
+        else:
+            self.readynum = num
         
+        if len(self.queue) < self.readynum:
+            await ctx.send("Not enough people in the lobby...")
+        else:
+            msg = ""
+            for i in range(self.readynum):
+                member = discord.utils.get(ctx.guild.members, id=self.queue[0])
+                msg += member.mention
+                self.queue.pop(0)
+            await ctx.send(msg)
+        
+        await ctx.invoke(self._queue)
     
     @commands.command(aliases=["qtime","settime"])
     async def queuetime(self, ctx, *, _time):
@@ -150,7 +179,12 @@ class QueueCog(commands.Cog):
     @commands.command(name="next")
     async def _next(self, ctx, num=1):
         """ Call the next member in the queue """
-
+        for _ in range(num):
+            if len(self.queue) == 0:
+                await ctx.send("No one left in the queue :(")
+                return
+            member = discord.utils.get(ctx.guild.members, id=self.queue[0])
+            
 
     @is_approved()
     @commands.command()
