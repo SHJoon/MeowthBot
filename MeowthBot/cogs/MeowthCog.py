@@ -146,9 +146,10 @@ class Meowth(commands.Cog):
     @commands.command(pass_context=True)
     async def captains(self, ctx):
         """ Randomizes captains list from General Voice channel"""
-        members = discord.utils.get(
-            ctx.guild.channels, name="The Commons", type=discord.ChannelType.voice
-        ).members
+        members = ctx.message.author.voice.channel.members
+        # members = discord.utils.get(
+        #     ctx.guild.channels, name="The Commons", type=discord.ChannelType.voice
+        # ).members
         random.shuffle(members)
         message = ""
         for place, member in enumerate(members):
@@ -161,9 +162,7 @@ class Meowth(commands.Cog):
     @commands.command(pass_context=True)
     async def lulcaptains(self, ctx):
         """ Like !captains, but like when Danny drinks"""
-        members = discord.utils.get(
-            ctx.guild.channels, name="The Commons", type=discord.ChannelType.voice
-        ).members
+        members = ctx.message.author.voice.channel.members
         random.shuffle(members)
         message = ""
 
